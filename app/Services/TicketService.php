@@ -17,10 +17,8 @@ class TicketService
         'resolvido' => 'fechado',
     ];
 
-    public function create(
-        array $data,
-        User $user
-    ): Ticket {
+    public function create(array $data, User $user): Ticket
+    {
         return DB::transaction(function () use ($data, $user) {
             $ticket = Ticket::create([
                 'user_id' => $user->id,
@@ -97,10 +95,43 @@ class TicketService
             ]);
         }
 
+        /*
+         * Apenas administradores e atendentes
+         * podem receber chamados.
+         */
         if (!in_array($assignedUser->role, ['admin', 'atendente'], true)) {
             throw ValidationException::withMessages([
-                'assigned_to' => 'O chamado só pode ser atribuído a um atendente ou administrador.',
+                'assigned_to' =>
+                    'O chamado só pode ser atribuído a um atendente ou administrador.',
             ]);
+        }
+
+        /*
+         * ATENDENTE
+         *
+         * Um atendente só pode assumir:
+         * - um chamado sem responsável;
+         * - um chamado que já pertence a ele.
+         *
+         * Ele não pode atribuir para outro atendente.
+         */
+        if ($performedBy->role === 'atendente') {
+            if (
+                $ticket->assigned_to !== null &&
+                $ticket->assigned_to !== $performedBy->id
+            ) {
+                throw ValidationException::withMessages([
+                    'assigned_to' =>
+                        'Este chamado já está atribuído a outro atendente.',
+                ]);
+            }
+
+            if ($assignedUserId !== $performedBy->id) {
+                throw ValidationException::withMessages([
+                    'assigned_to' =>
+                        'Um atendente só pode assumir chamados para si mesmo.',
+                ]);
+            }
         }
 
         $oldAssignedTo = $ticket->assigned_to;
@@ -115,10 +146,24 @@ class TicketService
                 'assigned_to' => $assignedUser->id,
             ]);
 
+            /*
+             * Somente um atendente assumindo um chamado sem
+             * responsável gera "chamado_assumido".
+             *
+             * Quando um administrador faz a atribuição,
+             * registramos "chamado_atribuido".
+             */
+            $action = (
+                $performedBy->role === 'atendente'
+                && $oldAssignedTo === null
+            )
+                ? 'chamado_assumido'
+                : 'chamado_atribuido';
+
             TicketHistory::create([
                 'ticket_id' => $ticket->id,
                 'user_id' => $performedBy->id,
-                'action' => 'chamado_atribuido',
+                'action' => $action,
                 'old_value' => $oldAssignedTo
                     ? (string) $oldAssignedTo
                     : null,

@@ -10,7 +10,6 @@ use App\Http\Requests\UpdateTicketRequest;
 use App\Http\Resources\TicketResource;
 use App\Models\Ticket;
 use App\Services\TicketService;
-use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 class TicketController extends Controller
@@ -69,20 +68,20 @@ class TicketController extends Controller
                 example: 1
             ),
         ],
-responses: [
-    new OA\Response(
-        response: 200,
-        description: 'Lista de chamados'
-    ),
-    new OA\Response(
-        response: 401,
-        description: 'Não autenticado'
-    ),
-    new OA\Response(
-        response: 422,
-        description: 'Dados inválidos'
-    ),
-],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Lista de chamados'
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'Não autenticado'
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Dados inválidos'
+            ),
+        ],
     )]
     public function index(TicketIndexRequest $request)
     {
@@ -95,13 +94,35 @@ responses: [
             ])
             ->latest();
 
+        /*
+         * Usuários comuns visualizam apenas
+         * os chamados que eles próprios criaram.
+         */
         if ($user->role === 'usuario') {
             $query->where('user_id', $user->id);
         }
 
+        /*
+         * Atendentes visualizam:
+         *
+         * - chamados sem responsável;
+         * - chamados atribuídos a eles.
+         *
+         * Chamados atribuídos a outros atendentes
+         * continuam ocultos.
+         */
         if ($user->role === 'atendente') {
-            $query->where('assigned_to', $user->id);
+            $query->where(function ($query) use ($user) {
+                $query
+                    ->whereNull('assigned_to')
+                    ->orWhere('assigned_to', $user->id);
+            });
         }
+
+        /*
+         * Administradores não recebem filtro de usuário,
+         * portanto conseguem visualizar todos os chamados.
+         */
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -336,8 +357,8 @@ responses: [
     #[OA\Patch(
         path: '/api/tickets/{ticket}/assign',
         operationId: 'assignTicket',
-        summary: 'Atribuir chamado',
-        description: 'Atribui um chamado a um usuário com perfil de atendente ou administrador.',
+        summary: 'Atribuir ou assumir chamado',
+        description: 'Administradores podem atribuir chamados a atendentes ou administradores. Atendentes podem assumir chamados disponíveis para si.',
         tags: ['Tickets'],
         security: [['sanctum' => []]],
         parameters: [
@@ -364,7 +385,7 @@ responses: [
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: 'Chamado atribuído'),
+            new OA\Response(response: 200, description: 'Chamado atribuído ou assumido'),
             new OA\Response(response: 401, description: 'Não autenticado'),
             new OA\Response(response: 403, description: 'Sem permissão'),
             new OA\Response(response: 422, description: 'Dados inválidos'),

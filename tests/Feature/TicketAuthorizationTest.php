@@ -521,39 +521,81 @@ class TicketAuthorizationTest extends TestCase
         ]);
     }
 
-    public function test_atendente_pode_atribuir_chamado(): void
-    {
-        $atendente = User::factory()->atendente()->create();
+    public function test_atendente_pode_assumir_chamado(): void
+{
+    $atendente = User::factory()->atendente()->create();
 
-        $outroAtendente = User::factory()->atendente()->create();
+    $usuario = User::factory()->create([
+        'role' => 'usuario',
+    ]);
 
-        $usuario = User::factory()->create([
-            'role' => 'usuario',
+    $categoria = Category::factory()->create();
+
+    $ticket = Ticket::factory()->create([
+        'user_id' => $usuario->id,
+        'category_id' => $categoria->id,
+        'assigned_to' => null,
+    ]);
+
+    $response = $this
+        ->actingAs($atendente, 'sanctum')
+        ->patchJson("/api/tickets/{$ticket->id}/assign", [
+            'assigned_to' => $atendente->id,
         ]);
 
-        $categoria = Category::factory()->create();
+    $response
+        ->assertStatus(200)
+        ->assertJsonPath('data.assigned_to.id', $atendente->id);
 
-        $ticket = Ticket::factory()->create([
-            'user_id' => $usuario->id,
-            'category_id' => $categoria->id,
-            'assigned_to' => null,
+    $this->assertDatabaseHas('tickets', [
+        'id' => $ticket->id,
+        'assigned_to' => $atendente->id,
+    ]);
+
+    $this->assertDatabaseHas('ticket_histories', [
+        'ticket_id' => $ticket->id,
+        'user_id' => $atendente->id,
+        'action' => 'chamado_assumido',
+        'old_value' => null,
+        'new_value' => (string) $atendente->id,
+    ]);
+}
+
+public function test_atendente_nao_pode_assumir_chamado_de_outro_atendente(): void
+{
+    $atendente = User::factory()->atendente()->create();
+
+    $outroAtendente = User::factory()->atendente()->create();
+
+    $usuario = User::factory()->create([
+        'role' => 'usuario',
+    ]);
+
+    $categoria = Category::factory()->create();
+
+    $ticket = Ticket::factory()->create([
+        'user_id' => $usuario->id,
+        'category_id' => $categoria->id,
+        'assigned_to' => $outroAtendente->id,
+    ]);
+
+    $response = $this
+        ->actingAs($atendente, 'sanctum')
+        ->patchJson("/api/tickets/{$ticket->id}/assign", [
+            'assigned_to' => $atendente->id,
         ]);
 
-        $response = $this
-            ->actingAs($atendente, 'sanctum')
-            ->patchJson("/api/tickets/{$ticket->id}/assign", [
-                'assigned_to' => $outroAtendente->id,
-            ]);
+$response
+    ->assertStatus(403)
+    ->assertJson([
+        'message' => 'Você não possui permissão para realizar esta ação.',
+    ]);
 
-        $response
-            ->assertStatus(200)
-            ->assertJsonPath('data.assigned_to.id', $outroAtendente->id);
-
-        $this->assertDatabaseHas('tickets', [
-            'id' => $ticket->id,
-            'assigned_to' => $outroAtendente->id,
-        ]);
-    }
+    $this->assertDatabaseHas('tickets', [
+        'id' => $ticket->id,
+        'assigned_to' => $outroAtendente->id,
+    ]);
+}
 
     public function test_usuario_nao_pode_atribuir_chamado(): void
     {

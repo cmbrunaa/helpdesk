@@ -8,9 +8,10 @@ use App\Models\User;
 class TicketPolicy
 {
     /**
-     * Admin pode visualizar qualquer chamado.
-     * Usuário comum pode visualizar os próprios chamados.
-     * Atendente pode visualizar chamados atribuídos a ele.
+     * Admin vê qualquer chamado.
+     * Atendente vê chamados atribuídos a ele
+     * ou ainda não atribuídos.
+     * Usuário comum vê apenas os próprios chamados.
      */
     public function view(User $user, Ticket $ticket): bool
     {
@@ -19,7 +20,8 @@ class TicketPolicy
         }
 
         if ($user->role === 'atendente') {
-            return $ticket->assigned_to === $user->id;
+            return $ticket->assigned_to === null
+                || $ticket->assigned_to === $user->id;
         }
 
         return $ticket->user_id === $user->id;
@@ -44,7 +46,7 @@ class TicketPolicy
     }
 
     /**
-     * Apenas administradores e atendentes podem alterar status.
+     * Apenas admin e atendente responsável podem alterar status.
      */
     public function changeStatus(User $user, Ticket $ticket): bool
     {
@@ -57,15 +59,28 @@ class TicketPolicy
     }
 
     /**
-     * Apenas administradores e atendentes podem atribuir chamados.
+     * Admin pode atribuir qualquer chamado.
+     * Atendente pode assumir apenas chamados sem responsável
+     * ou manter/reassumir o próprio chamado.
      */
     public function assign(User $user, Ticket $ticket): bool
     {
-        return in_array($user->role, ['admin', 'atendente']);
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        return $user->role === 'atendente'
+            && (
+                $ticket->assigned_to === null
+                || $ticket->assigned_to === $user->id
+            );
     }
 
     /**
-     * Define quem pode comentar no chamado.
+     * Admin pode comentar em qualquer chamado.
+     * Atendente pode comentar nos chamados atribuídos a ele
+     * ou ainda não atribuídos.
+     * Usuário comum pode comentar nos próprios chamados.
      */
     public function comment(User $user, Ticket $ticket): bool
     {
@@ -74,7 +89,8 @@ class TicketPolicy
         }
 
         if ($user->role === 'atendente') {
-            return $ticket->assigned_to === $user->id;
+            return $ticket->assigned_to === null
+                || $ticket->assigned_to === $user->id;
         }
 
         return $ticket->user_id === $user->id;

@@ -1,26 +1,395 @@
 @import "tailwindcss";
 
+/* =========================================================
+   HELPDESK — DESIGN SYSTEM
+   Clean Enterprise + Pixel / Tech
+   ========================================================= */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f7fb;
+  --foreground: #172033;
+
+  /* =======================================================
+     CORES
+     ======================================================= */
+
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-200: #bfdbfe;
+  --blue-300: #93c5fd;
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #1764f5;
+  --blue-700: #0f56db;
+  --blue-800: #1249ad;
+  --blue-900: #12316b;
+
+  /* =======================================================
+     INTERFACE
+     ======================================================= */
+
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+
+  --border: #e2e8f0;
+  --border-blue: #dbeafe;
+
+  /* =======================================================
+     TEXTO
+     ======================================================= */
+
+  --text-primary: #172033;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  /* =======================================================
+     ESTADOS
+     ======================================================= */
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  /* =======================================================
+     TIPOGRAFIA
+     ======================================================= */
+
+  /*
+    Inter
+    Fonte principal de toda a interface.
+
+    Pixelify Sans
+    Identidade pixel / elementos especiais.
+
+    Space Mono
+    Terminal, IDs, labels e informações técnicas.
+  */
+
+  --font-ui: var(--font-inter);
+  --font-pixel: var(--font-pixelify);
+  --font-terminal: var(--font-space-mono);
 }
+
+/* =========================================================
+   TAILWIND THEME
+   ========================================================= */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-terminal);
+
+  --color-helpdesk-blue: var(--blue-600);
+  --color-helpdesk-blue-dark: var(--blue-700);
+  --color-helpdesk-blue-deep: var(--blue-900);
+
+  --color-helpdesk-surface: var(--surface);
+  --color-helpdesk-border: var(--border);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* =========================================================
+   FONTES
+   ========================================================= */
+
+/*
+  Fonte principal
+*/
+
+.font-ui {
+  font-family: var(--font-ui);
+}
+
+/*
+  Pixelify Sans
+*/
+
+.font-pixel {
+  font-family: var(--font-pixel);
+}
+
+/*
+  Space Mono
+*/
+
+.font-terminal {
+  font-family: var(--font-terminal);
+}
+
+/* =========================================================
+   BASE
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
 }
 
 body {
+  min-height: 100vh;
+  margin: 0;
+
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+
+  /*
+    AQUI está a mudança principal:
+    toda a aplicação usa Inter.
+  */
+  font-family: var(--font-ui);
+
+  font-size: 14px;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+  Elementos de formulário também herdam a Inter.
+*/
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+/* =========================================================
+   SELEÇÃO
+   ========================================================= */
+
+::selection {
+  background: var(--blue-100);
+  color: var(--blue-900);
+}
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* =========================================================
+   COMPONENTES GERAIS
+   ========================================================= */
+
+/*
+  Etiquetas técnicas
+*/
+
+.helpdesk-label {
+  font-family: var(--font-terminal);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/*
+  IDs de chamados
+*/
+
+.helpdesk-id {
+  font-family: var(--font-terminal);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--blue-600);
+}
+
+/*
+  Detalhes >_
+*/
+
+.helpdesk-terminal {
+  font-family: var(--font-terminal);
+  color: var(--blue-600);
+}
+
+/* =========================================================
+   PIXEL DETAILS
+   ========================================================= */
+
+.pixel-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 6px);
+  gap: 4px;
+}
+
+.pixel-grid span {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--blue-300);
+}
+
+/* =========================================================
+   LINHA TÉCNICA
+   ========================================================= */
+
+.terminal-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-line::after {
+  content: "";
+
+  height: 1px;
+  flex: 1;
+
+  background: var(--border-blue);
+}
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.status-dot {
+  display: inline-block;
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 999px;
+}
+
+.status-online {
+  background: var(--success);
+}
+
+.status-warning {
+  background: var(--warning);
+}
+
+.status-danger {
+  background: var(--danger);
+}
+
+
+.font-pixel {
+  font-family: var(--font-pixel), monospace;
+}
+
+.font-terminal {
+  font-family: var(--font-terminal), monospace;
+}
+
+body {
+  font-family: var(--font-inter), sans-serif;
+}
+
+/* =========================================================
+   ANIMAÇÕES
+   ========================================================= */
+
+@keyframes helpdesk-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.animate-helpdesk-pulse {
+  animation: helpdesk-pulse 2s ease-in-out infinite;
+}
+
+@keyframes helpdesk-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-helpdesk-fade-in {
+  animation: helpdesk-fade-in 0.25s ease-out;
+}
+
+/* =========================================================
+   FOCUS
+   ========================================================= */
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+/* =========================================================
+   REDUÇÃO DE MOVIMENTO
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =========================================================
+   RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 640px) {
+  body {
+    font-size: 13px;
+  }
 }

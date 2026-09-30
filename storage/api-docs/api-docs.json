@@ -717,8 +717,8 @@
                 "tags": [
                     "Tickets"
                 ],
-                "summary": "Atribuir chamado",
-                "description": "Atribui um chamado a um usuário com perfil de atendente ou administrador.",
+                "summary": "Atribuir ou assumir chamado",
+                "description": "Administradores podem atribuir chamados a atendentes ou administradores. Atendentes podem assumir chamados disponíveis para si.",
                 "operationId": "assignTicket",
                 "parameters": [
                     {
@@ -753,7 +753,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Chamado atribuído"
+                        "description": "Chamado atribuído ou assumido"
                     },
                     "401": {
                         "description": "Não autenticado"
@@ -812,6 +812,101 @@
                     }
                 ]
             }
+        },
+        "/api/users/assignees": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Listar usuários que podem receber chamados",
+                "description": "Retorna administradores e atendentes disponíveis para atribuição de chamados.",
+                "operationId": "listTicketAssignees",
+                "responses": {
+                    "200": {
+                        "description": "Lista de usuários"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Sem permissão"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/{user}/role": {
+            "patch": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Alterar função de um usuário",
+                "description": "Permite que um administrador altere a função de um usuário.",
+                "operationId": "updateUserRole",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "ID do usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 3
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "role"
+                                ],
+                                "properties": {
+                                    "role": {
+                                        "description": "Nova função do usuário",
+                                        "type": "string",
+                                        "example": "atendente",
+                                        "enum": [
+                                            "usuario",
+                                            "atendente",
+                                            "admin"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Função alterada com sucesso"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores podem alterar funções"
+                    },
+                    "404": {
+                        "description": "Usuário não encontrado"
+                    },
+                    "422": {
+                        "description": "Dados inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -840,6 +935,10 @@
         {
             "name": "History",
             "description": "History"
+        },
+        {
+            "name": "Users",
+            "description": "Users"
         }
     ]
 }

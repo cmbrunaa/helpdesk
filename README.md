@@ -2,8 +2,6 @@
   <img src="frontend/public/logo.png" alt="HelpDesk" width="280">
 </p>
 
-<h1 align="center">HelpDesk</h1>
-
 <p align="center">
   Sistema de gerenciamento de chamados de suporte técnico
 </p>
